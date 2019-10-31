@@ -1,3 +1,40 @@
 h1 {
-    text-align: center;
+  text-align: center;
+  color: green;
+  background-color: #1e9cc4;
+  font-family: Algerian;
+  border-style: solid;
+  margin-bottom: 0rem;
 }
+
+body {
+  /*background-color: blue;*/
+  background-image: url("/images/fakeimage.jpg");
+  /*	background-size: fill;  */
+}
+
+h2 {
+  text-align: left;
+  color: black;
+  font-family: Times New Roman;
+}
+
+.div1 {
+  /*border-style: groove;
+	border-width: 5px;
+	border-color: black;
+	width: 750px;
+	height: 150px; */
+  color: black;
+  font-family: Times New Roman;
+}
+
+p {
+  color: rgb(118, 57, 128);
+  font-family: Lucida Handwriting;
+}
+
+/*select{
+	color: rgb(118,57,128);
+    font-family: Lucida Handwriting;
+}*/

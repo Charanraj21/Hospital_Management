@@ -1,0 +1,128 @@
+<html>
+    <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  margin: auto;
+  text-align: center;
+}
+
+.title {
+  color: grey;
+  font-size: 18px;
+}
+.topnav {
+background-color: #333;
+overflow: hidden;
+}
+
+/* Style the links inside the navigation bar */
+
+
+.btn:hover {
+  opacity: 1;}
+
+  .topnav {
+    background-color: #333;
+    overflow: hidden;
+}
+
+/* Style the links inside the navigation bar */
+.topnav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+/* Change the color of links on hover */
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+/* Add a color to the active/current link */
+.topnav a.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+/* Right-aligned section inside the top navigation */
+.topnav-right {
+  float: right;
+}
+
+	.bg-image {
+  /* The image used */
+  background-image: url("https://images.unsplash.com/photo-1546450334-03038e2eaa39?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=753&q=80");
+
+  /* Add the blur effect */
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+
+  /* Full height */
+  height: 100%;
+  min-height: 300px;
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  width: 8%;
+  opacity: 0.9;
+}
+
+
+</style>
+        </head>
+        <body>
+             <div>
+               <div class="topnav">
+                  <% officers.forEach(function(off) { %> 
+                        <a class="active" href="/home?category=<%= off.section_id %>'">PRISONXT</a><% }); %>
+                        <div class="topnav-right">
+                            <% officers.forEach(function(off) { %> 
+                          <a class="active" href="/home?category=<%= off.section_id %>'">BACK</a> <% }); %>
+                    </div>
+             </div>
+             <div class="card">
+                    <% officers.forEach(function(off) { %>
+                      <% if (off.admin_id == 1) { %>
+                        <img src="https://s.abcnews.com/images/US/jeff-koenig-ht-ml-190122_hpEmbed_2_4x5_992.jpg" height="300px" >
+                      <% }   if (off.admin_id == 2) { %>
+                     <img src="https://www.odmp.org/media/image/officer/24176/orig/c_juan-jose-diaz.jpg" height="300px" > 
+                  <% } if (off.admin_id == 3) { %>
+                    <img src="https://s3.amazonaws.com/ogden_images/www.theintelligencer.net/images/2018/08/23011052/Skinner-589x840.jpg" height="300px" > 
+                <%  } %>
+                     
+                  
+                     <h1><%= off.fname %></h1>
+                            <p class="title"> <%= off.job_title %> </p>
+                            <% }); %>
+                            <p>Alabama Jail</p>
+                           
+                        </div>
+                                    </div>
+ <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        </body>
+    </html>
+    
+
+
+
+
+

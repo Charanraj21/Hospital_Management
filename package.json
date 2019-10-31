@@ -1,27 +1,24 @@
 {
-  "name": "hospital_management",
+  "name": "mysql_project",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Charanraj21/Hospital_Management.git"
+    "start": "nodemon login.js"
   },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Charanraj21/Hospital_Management/issues"
-  },
-  "homepage": "https://github.com/Charanraj21/Hospital_Management#readme",
   "dependencies": {
+    "alert-node": "^2.0.1",
     "body-parser": "^1.19.0",
     "ejs": "^2.7.1",
-    "express": "^4.17.1"
-  },
-  "devDependencies": {
-    "nodemon": "^1.19.4"
+    "express": "^4.17.1",
+    "express-fileupload": "^1.1.6-alpha.5",
+    "express-session": "^1.17.0",
+    "express-validator": "^6.2.0",
+    "express-validators": "^1.0.4",
+    "mysql": "^2.17.1",
+    "nodemon": "^1.19.4",
+    "req-flash": "0.0.3"
   }
 }
