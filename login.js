@@ -3,7 +3,6 @@ var session = require("express-session");
 var bodyParser = require("body-parser");
 const { body, validationResult } = require("express-validator");
 var path = require("path");
-var router = express.Router();
 const con = require("./Util/dbconnection");
 
 var app = express();
@@ -106,11 +105,18 @@ app.get("/signup", (req, res) => {
 app.post(
   "/signup",
   [
-    body("name", "Name Should only contain letters")
+    body("pname", "Name Should only contain letters")
       .trim()
-      .optional({ checkFalsy: true })
-      .isAlpha(),
-    body("email", "Email is in valid")
+      .isLength({ min: 3 })
+      .withMessage("Name Should be Minimum 3 Characters Long")
+      .custom(value => {
+        const letterNumber = /^[a-zA-Z .]+$/;
+        if (value.match(letterNumber)) {
+          return true;
+        }
+        return false;
+      }),
+    body("email", "Email is invalid")
       .normalizeEmail()
       .isEmail()
       .custom(value => {
@@ -122,7 +128,16 @@ app.post(
               return Promise.reject("Email is Already in use");
             }
           });
-      })
+      }),
+    body("password", "Password Must be Minimum of 6 Characters Long")
+      .trim()
+      .isLength({ min: 6 }),
+    body("address", "Address Must be Minimum 5 Characters Long")
+      .trim()
+      .isLength({ min: 5 }),
+    body("pno", "Invalid Phone Number")
+      .trim()
+      .isDecimal()
   ],
   (req, res) => {
     const error = validationResult(req);
