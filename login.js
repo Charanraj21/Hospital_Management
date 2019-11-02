@@ -249,10 +249,100 @@ app.get("/login/doctor", (req, res) => {
   res.render("dlogin", { data: {}, error: "", validationErrors: [] });
 });
 
+app.post(
+  "/login/doctor",
+  [
+    body("email", "Email or Password is Invalid")
+      .normalizeEmail()
+      .isEmail()
+      .custom((value, { req }) => {
+        return con
+          .execute("SELECT * FROM `doctor` WHERE email = ?", [value])
+          .then(([result]) => {
+            console.log(result);
+            if (result.length > 0) {
+              if (result[0].password !== req.body.password) {
+                return Promise.reject();
+              } else {
+                req.session.isLoggedIn = true;
+                req.session.UserId = result[0].did;
+                req.session.UserType = "doctor";
+                return;
+              }
+            }
+            return Promise.reject();
+          });
+      }),
+    body("password", "Email or Password is Invalid")
+      .trim()
+      .isLength({ min: 6 })
+  ],
+  (req, res) => {
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("dlogin", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array()
+      });
+    }
+    console.log("Input is Valid");
+    req.session.save(() => {
+      return res.redirect("/");
+    });
+  }
+);
+
 // ADMIN
 app.get("/login/admin", (req, res) => {
   res.render("alogin", { data: {}, error: "", validationErrors: [] });
 });
+
+app.post(
+  "/login/admin",
+  [
+    body("email", "Email or Password is Invalid")
+      .normalizeEmail()
+      .isEmail()
+      .custom((value, { req }) => {
+        return con
+          .execute("SELECT * FROM `admin` WHERE email = ?", [value])
+          .then(([result]) => {
+            console.log(result);
+            if (result.length > 0) {
+              if (result[0].password !== req.body.password) {
+                return Promise.reject();
+              } else {
+                req.session.isLoggedIn = true;
+                req.session.UserId = result[0].id;
+                req.session.UserType = "admin";
+                return;
+              }
+            }
+            return Promise.reject();
+          });
+      }),
+    body("password", "Email or Password is Invalid")
+      .trim()
+      .isLength({ min: 6 })
+  ],
+  (req, res) => {
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("alogin", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array()
+      });
+    }
+    console.log("Input is Valid");
+    req.session.save(() => {
+      return res.redirect("/");
+    });
+  }
+);
 
 /*    LOGIN ROUTES END */
 
