@@ -14,7 +14,14 @@
 <body>
     <h1>K HOSPITAL</h1>
     <%- include('includes/nav.ejs')%>
-    <h2>Welcome to the K Hospital</h2>
+    <div class="container mt-1" style="background-color: rgb(191, 238, 247);">
+        <h2 class="text-center">
+            <%= code %>
+        </h2>
+        <h2 class="text-center">
+            <%= message %>
+        </h2>
+    </div>
 </body>
 <%-include('includes/end.ejs') %>
 
