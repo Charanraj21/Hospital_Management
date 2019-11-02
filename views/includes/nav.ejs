@@ -2,34 +2,109 @@
     <nav class="nav navbar-light navbar-expand-lg bg-light">
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
+
                 <li class="nav-item active">
                     <a class="nav-link" href="/" style="color: #880202;">Home</a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="/about" style="color: #880202;">About</a>
                 </li>
-                <li class="nav-item">
+
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="/register" style="color: #880202;">Registeration(Admitting Patient)</a>
-                </li>
+                </li> -->
+                <% if(UserType === 'patient'  && status === false) { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="/appointment" style="color: #880202;">Book an appointment(Non-Admitted
-                        Patient)</a>
+                    <a class="nav-link" href="/patient/appointment" style="color: #880202;">Book an appointment</a>
                 </li>
+                <% } %>
+
+                <% if(UserType === 'patient') {%>
+                <li class="nav-item">
+                    <a class="nav-link" href="/patient/relatives" style="color: #880202;">Ralatives</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/patient/prescriptions" style="color: #880202;">Prescriptions</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/patient/Bills" style="color: #880202;">Bills</a>
+                </li>
+
+                <% } %>
+
+                <% if(UserType === 'doctor') { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/doctor/prescriptions" style="color: #880202;">Prescriptions</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/doctor/patients" style="color: #880202;">Patients</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/doctor/appoinments" style="color: #880202;">Appointment</a>
+                </li>
+
+                <% } %>
+
+                <% if(UserType === 'admin') { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/doctors" style="color: #880202;">Doctors</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/patients" style="color: #880202;">Patients</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/appoinments" style="color: #880202;">Appointments</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/admit" style="color: #880202;">Admit</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/bills" style="color: #880202;">Bills</a>
+                </li>
+                <% } %>
+
+                <% if(UserType !== 'admin') { %>
                 <li class="nav-item">
                     <a class="nav-link" href="/doctor" style="color: #880202;">Available doctors</a>
                 </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" href="/contact" style="color: #880202;">Contact us</a>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
                 <% if (isLoggedIn) { %>
+                <% if (UserType === 'patient') { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/patient/profile" style="color: #880202;">MyProfile</a>
+                </li>
+                <% } else if (UserType === 'doctor') { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/doctor/profile" style="color: #880202;">MyProfile</a>
+                </li>
+                <% } else { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/profile" style="color: #880202;">MyProfile</a>
+                </li>
+                <% } %>
                 <li class="nav-item">
                     <form action="/logout" method="POST" class="form-inline">
                         <button type="submit" class="btn btn-link nav-link" style="color: #880202;">Logout</button>
                     </form>
                 </li>
                 <% } else { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/signup" style="color: #880202;">SignUp</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/login/patient" style="color: #880202;">Login</a>
                 </li>

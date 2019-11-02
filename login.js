@@ -31,6 +31,62 @@ app.use(express.static(path.join(__dirname, "public")));
 // app.engine('html', require('ejs').renderFile);
 // app.set('view engine', 'html');
 
+// MIDDLEWARE FUNTIONS
+
+const isAuth = (req, res, next) => {
+  if (!req.session.isLoggedIn) {
+    res.redirect("/login/patient");
+  } else {
+    next();
+  }
+};
+
+const isDoc = (req, res, next) => {
+  if (req.session.UserType !== "doctor") {
+    res.render("error", {
+      code: "401",
+      message: "Sorry You Cannot Access This Page"
+    });
+  } else {
+    next();
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.session.UserType !== "admin") {
+    res.render("error", {
+      code: "401",
+      message: "Sorry You Cannot Access This Page"
+    });
+  } else {
+    next();
+  }
+};
+
+const isAdmitted = (req, res, next) => {
+  if (req.session.status) {
+    next();
+  } else {
+    res.render("error", {
+      code: "401",
+      message: "Sorry You Cannot Access This Page"
+    });
+  }
+};
+
+const isNotAdmitted = (req, res, next) => {
+  if (!req.session.status) {
+    next();
+  } else {
+    res.render("error", {
+      code: "401",
+      message: "Sorry You Cannot Access This Page"
+    });
+  }
+};
+
+// MIDDLEWARE
+
 app.use((req, res, next) => {
   res.locals.isLoggedIn = req.session.isLoggedIn;
   res.locals.UserId = req.session.UserId;
@@ -39,6 +95,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// ROUTES
 
 app.get("/", function(request, response) {
   response.render("index");
@@ -52,7 +110,7 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
-app.get("/appointment", (req, res) => {
+app.get("/appointment", isAuth, isNotAdmitted, (req, res) => {
   res.render("appointment");
 });
 
