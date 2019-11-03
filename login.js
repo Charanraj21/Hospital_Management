@@ -31,7 +31,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // app.engine('html', require('ejs').renderFile);
 // app.set('view engine', 'html');
 
-// MIDDLEWARE FUNTIONS
+/**********************MIDDLEWARE FUNTIONS*****************************/
 
 const isAuth = (req, res, next) => {
   if (!req.session.isLoggedIn) {
@@ -96,7 +96,9 @@ const isNotAdmitted = (req, res, next) => {
   }
 };
 
-// MIDDLEWARE
+/***************MIDDLEWARE FUNTIONS END**************/
+
+/****************MIDDLEWARE*************************/
 
 app.use((req, res, next) => {
   res.locals.isLoggedIn = req.session.isLoggedIn;
@@ -106,8 +108,9 @@ app.use((req, res, next) => {
 
   next();
 });
+/****************MIDDLEWARE END**********************/
 
-// ROUTES
+/*********************ROUTES**************************/
 
 app.get("/", function(request, response) {
   response.render("index");
@@ -121,7 +124,7 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
-// Appointment Routes for Patient
+/***************************Appointment Routes for Patient***********************/
 
 app.get("/patient/myappointment", isAuth, isPat, (req, res) => {
   con
@@ -298,10 +301,227 @@ app.post(
         ]
       )
       .then(() => {
-        return res.redirect("/");
+        return res.redirect("/patient/myappointment");
       });
   }
 );
+/***************************Appointment Routes for Patient END****************************************************/
+
+/***************************Relative Routes for Patient***********************************************************/
+
+app.get("/patient/relatives", isAuth, isPat, (req, res) => {
+  con
+    .execute("SELECT * FROM relative WHERE pid = ?", [req.session.UserId])
+    .then(([results]) => {
+      return res.render("prelatives", {
+        results: results,
+        error: "",
+        count: results.length
+      });
+    });
+});
+
+app.get("/patient/relatives/add", isAuth, isPat, (req, res) => {
+  res.render("preladd", {
+    data: {},
+    error: "",
+    validationErrors: [],
+    type: "add",
+    odata: {}
+  });
+});
+
+app.post(
+  "/patient/relatives/add",
+  [
+    body("rname", "Name Should only contain letters")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Name Should be Minimum 3 Characters Long")
+      .custom(value => {
+        const letterNumber = /^[a-zA-Z .]+$/;
+        if (value.match(letterNumber)) {
+          return true;
+        }
+        return false;
+      }),
+    body("relation", "Name Should only contain letters")
+      .trim()
+      .isAlpha()
+      .custom((value, { req }) => {
+        return con
+          .execute(`SELECT count(pid) as 'count' FROM relative WHERE pid=?`, [
+            req.session.UserId
+          ])
+          .then(([result]) => {
+            if (!(result[0].count < 5)) {
+              return Promise.reject("You cannot add more relatives");
+            }
+          });
+      }),
+    body("pno", "Invalid Phone Number")
+      .trim()
+      .isDecimal()
+      .custom((value, { req }) => {
+        return con
+          .execute(
+            `SELECT * FROM relative WHERE pid = ? AND rname LIKE ? AND relation LIKE ?`,
+            [req.session.UserId, req.body.rname, req.body.relation]
+          )
+          .then(([result]) => {
+            if (result.length > 0) {
+              return Promise.reject("That Relative Already Exists");
+            }
+          });
+      })
+  ],
+  isAuth,
+  isPat,
+  (req, res) => {
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("preladd", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array(),
+        type: "add",
+        odata: {}
+      });
+    }
+    console.log("Input is Valid");
+
+    con
+      .execute(
+        `INSERT INTO relative(pid, rname, relation, pno) 
+        VALUES (?, ?, ?, ?)`,
+        [req.session.UserId, req.body.rname, req.body.relation, req.body.pno]
+      )
+      .then(() => {
+        return res.redirect("/patient/relatives");
+      })
+      .catch(err => console.log(error));
+  }
+);
+
+app.get("/patient/relatives/edit", isAuth, isPat, (req, res) => {
+  con
+    .execute(
+      "SELECT * FROM relative WHERE pid = ? AND rname = ? AND relation = ?",
+      [req.session.UserId, req.query.rname, req.query.relation]
+    )
+    .then(([results]) => {
+      req.session.orname = req.query.rname;
+      req.session.orelation = req.query.relation;
+      return req.session.save(() => {
+        return res.render("preladd", {
+          data: results[0],
+          error: "",
+          validationErrors: [],
+          type: "edit",
+          odata: {
+            rname: req.query.rname,
+            relation: req.query.relation
+          }
+        });
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+app.post(
+  "/patient/relatives/edit",
+  [
+    body("rname", "Name Should only contain letters")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Name Should be Minimum 3 Characters Long")
+      .custom(value => {
+        const letterNumber = /^[a-zA-Z .]+$/;
+        if (value.match(letterNumber)) {
+          return true;
+        }
+        return false;
+      }),
+    body("relation", "Name Should only contain letters")
+      .trim()
+      .isAlpha(),
+    body("pno", "Invalid Phone Number")
+      .trim()
+      .isDecimal()
+      .custom((value, { req }) => {
+        return con
+          .execute(
+            `SELECT * FROM relative WHERE pid = ? AND rname LIKE ? AND relation LIKE ?`,
+            [req.session.UserId, req.body.rname, req.body.relation]
+          )
+          .then(([result]) => {
+            if (result.length > 0) {
+              if (
+                result[0].rname.toLowerCase() !==
+                  req.body.orname.toLowerCase() ||
+                result[0].relation.toLowerCase() !==
+                  req.body.orelation.toLowerCase()
+              ) {
+                return Promise.reject("That Relative Already Exists");
+              }
+            }
+          });
+      })
+  ],
+  isAuth,
+  isPat,
+  (req, res) => {
+    req.query.rname = req.session.orname;
+    req.query.relation = req.session.orelation;
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("preladd", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array(),
+        type: "edit",
+        odata: {
+          rname: req.query.rname,
+          relation: req.query.relation
+        }
+      });
+    }
+    console.log("Input is Valid", req.body);
+
+    con
+      .execute(
+        `UPDATE relative SET rname= ?, relation= ?, pno= ?  
+        WHERE pid = ? AND rname LIKE ? AND relation LIKE ?`,
+        [
+          req.body.rname,
+          req.body.relation,
+          req.body.pno,
+          req.session.UserId,
+          req.body.orname,
+          req.body.orelation
+        ]
+      )
+      .then(() => {
+        return res.redirect("/patient/relatives");
+      })
+      .catch(err => console.log(error));
+  }
+);
+
+app.post("/patient/relatives/delete", isAuth, isPat, (req, res) => {
+  con
+    .execute(
+      "DELETE FROM `relative` WHERE pid = ? AND rname LIKE ? AND relation LIKE ?",
+      [req.session.UserId, req.body.orname, req.body.orelation]
+    )
+    .then(() => {
+      res.redirect("/patient/relatives");
+    });
+});
+
+/***************************Relative Routes for Patient END***********************************************************/
 
 /***************************************Availabe Doctors************************************************************/
 app.get("/doctor", (req, res) => {
@@ -359,8 +579,9 @@ app.post(
 app.get("/contact", (req, res) => {
   res.render("contact");
 });
+/******************Availabe Doctors*****************************/
 
-/*    SIGNUP ROUTES   */
+/********************SIGNUP ROUTES******************************/
 
 // GET ROUTE
 app.get("/signup", (req, res) => {
@@ -437,9 +658,9 @@ app.post(
   }
 );
 
-/*    SIGNUP ROUTES END  */
+/***********************SIGNUP ROUTES END********************************/
 
-/*    LOGIN ROUTES  */
+/***************************LOGIN ROUTES********************************/
 
 // PATIENT
 app.get("/login/patient", (req, res) => {
@@ -592,9 +813,9 @@ app.post(
   }
 );
 
-/*    LOGIN ROUTES END */
+/********************LOGIN ROUTES END*********************************/
 
-/*    LOGOUT ROUTE  */
+/**********************LOGOUT ROUTE**********************************/
 
 app.post("/logout", (req, res) => {
   req.session.destroy(() => {
@@ -602,9 +823,9 @@ app.post("/logout", (req, res) => {
   });
 });
 
-/*    LOGOUT ROUTE END */
+/********************LOGOUT ROUTE END************************************/
 
-/*    ERROR ROUTE  */
+/***********************ERROR ROUTE************************************/
 
 app.use((req, res) => {
   res.render("error", {

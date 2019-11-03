@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>K HOSPITAL</title>
+    <title>Registration</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/index.css">
+
+</head>
+
+<body>
+    <h1>K HOSPITAL</h1>
+    <%- include('includes/nav.ejs')%>
+    <h2><%= type %> Relative</h2>
+    <div class="container border rounded" style="background: rgb(240, 248, 255); border-color: black;">
+        <% if (error.length > 0) { %>
+        <div class="alert alert-danger text-center mt-2" role="alert">
+            <%= error %>
+        </div>
+        <% } %>
+        <% if(type === 'edit') { %>
+        <div class="form-row ml-auto mt-2">
+            <button type="button" class="btn btn-danger ml-auto" data-toggle="modal" data-target="#exampleModal">
+                Delete
+            </button>
+        </div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are You Sure?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <form action="/patient/relatives/delete" method="POST">
+                            <input type="hidden" name="orname" value="<%= odata.rname %>">
+                            <input type="hidden" name="orelation" value="<%= odata.relation %>">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+        <form action="<%= (type === 'add') ? '/patient/relatives/add' : '/patient/relatives/edit' %>" class="p-3"
+            method="POST">
+            <div class="form-group">
+                <label for="Name">Name</label>
+                <input type="text"
+                    class="form-control <%= validationErrors.find(e => e.param === 'rname') ? 'is-invalid' : '' %>"
+                    id="Name" name="rname" placeholder="Name" value="<%= data.rname %>" required>
+            </div>
+            <div class="form-group">
+                <label for="Relation">Relation</label>
+                <input type="text"
+                    class="form-control <%= validationErrors.find(e => e.param === 'relation') ? 'is-invalid' : '' %>"
+                    id="Relation" name="relation" placeholder="Relation" value="<%= data.relation %>" required>
+            </div>
+            <div class="form-group">
+                <label for="pno">Phone No</label>
+                <input type="tel"
+                    class="form-control <%= validationErrors.find(e => e.param === 'pno') ? 'is-invalid' : '' %>"
+                    id="pno" name='pno' placeholder="Phone Number" value="<%= data.pno %>" required>
+            </div>
+            <input type="hidden" name="orname" value="<%= odata.rname %>">
+            <input type="hidden" name="orelation" value="<%= odata.relation %>">
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary"><%= (type === 'add') ? 'Add' : 'Update' %></button>
+            </div>
+        </form>
+    </div>
+</body>
+<%-include('includes/end.ejs') %>
+
+</html>

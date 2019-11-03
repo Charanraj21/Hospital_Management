@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>K HOSPITAL</title>
+    <title>Appointment</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <h1>K HOSPITAL</h1>
+    <%- include('includes/nav.ejs')%>
+    <h2>My Relatives</h2>
+    <div class="container">
+        <div class="text-center mb-4">
+            <form action="/patient/relatives/add">
+                <button class="btn btn-primary" <%= (count < 5) ? "": "disabled" %>>Add
+                    Relative</button>
+            </form>
+        </div>
+        <table class="table table-hover table-sm table-bordered">
+            <thead>
+                <tr class="bg-primary">
+                    <th scope="col">Relative Name</th>
+                    <th scope="col">Relative Relation</th>
+                    <th scope="col">Relative Phone No</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for (result of results) { %>
+                <tr class="table-primary" style="cursor: pointer;"
+                    onclick="window.location = '/patient/relatives/edit/?rname=<%= result.rname %>&relation=<%= result.relation %>'">
+                    <td><%= result.rname %></td>
+                    <td><%= result.relation %></td>
+                    <td><%= result.pno %></td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</body>
+<%-include('includes/end.ejs') %>
+
+</html>

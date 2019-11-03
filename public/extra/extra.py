@@ -264,3 +264,4 @@ if (request.session.loggedin)
 	response.send('Please login to view this page!');
 	}
 });
+
