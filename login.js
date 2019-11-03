@@ -41,6 +41,17 @@ const isAuth = (req, res, next) => {
   }
 };
 
+const isPat = (req, res, next) => {
+  if (req.session.UserType !== "patient") {
+    res.render("error", {
+      code: "401",
+      message: "Sorry You Cannot Access This Page"
+    });
+  } else {
+    next();
+  }
+};
+
 const isDoc = (req, res, next) => {
   if (req.session.UserType !== "doctor") {
     res.render("error", {
@@ -110,10 +121,189 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
-app.get("/appointment", isAuth, isNotAdmitted, (req, res) => {
-  res.render("appointment");
+// Appointment Routes for Patient
+
+app.get("/patient/myappointment", isAuth, isPat, (req, res) => {
+  con
+    .execute(
+      `SELECT appointed.*, doctor.dname, doctor.pno, doctor.specialization 
+      FROM appointed, doctor WHERE appointed.did = doctor.did AND appointed.pid = ?
+      ORDER BY appointed.date DESC`,
+      [req.session.UserId]
+    )
+    .then(([results]) => {
+      return res.render("myappoint", {
+        results: results,
+        input: {},
+        error: ""
+      });
+    });
 });
 
+app.post(
+  "/patient/myappointment",
+  [
+    body("searchText", "Seach should contain only characters and numbers")
+      .trim()
+      .optional({ checkFalsy: true })
+      .isAlphanumeric()
+  ],
+  isAuth,
+  isPat,
+  (req, res) => {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return con
+        .execute(
+          `SELECT appointed.*, doctor.dname, doctor.pno, doctor.specialization 
+        FROM appointed, doctor WHERE appointed.did = doctor.did AND appointed.pid = ?
+        ORDER BY appointed.date DESC`,
+          [req.session.UserId]
+        )
+        .then(([results]) => {
+          return res.render("myappoint", {
+            results: results,
+            input: req.body,
+            error: errors.array()[0].msg
+          });
+        })
+        .catch(err => console.log(err));
+    } else if (req.body.date == "") {
+      return con
+        .execute(
+          `SELECT appointed.*, doctor.dname, doctor.pno, doctor.specialization 
+        FROM appointed, doctor WHERE appointed.did = doctor.did AND appointed.pid = ?
+        AND (doctor.did = ? OR dname LIKE ? OR specialization LIKE ?)
+        ORDER BY appointed.date DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            "%" + req.body.searchText + "%"
+          ]
+        )
+        .then(([results]) => {
+          return res.render("myappoint", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    } else {
+      return con
+        .execute(
+          `SELECT appointed.*, doctor.dname, doctor.pno, doctor.specialization 
+        FROM appointed, doctor WHERE appointed.did = doctor.did AND appointed.pid = ?
+        AND (doctor.did = ? OR dname LIKE ? OR specialization LIKE ?) AND date = ?
+        ORDER BY appointed.date DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            "%" + req.body.searchText + "%",
+            req.body.date
+          ]
+        )
+        .then(([results]) => {
+          return res.render("myappoint", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    }
+  }
+);
+
+app.get("/patient/appointment", isAuth, isPat, isNotAdmitted, (req, res) => {
+  con
+    .execute("SELECT * FROM doctor;")
+    .then(([doctors]) => {
+      return res.render("pappoint", {
+        doctors: doctors,
+        error: "",
+        input: {},
+        validationErrors: ""
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+app.post(
+  "/patient/appointment",
+  [
+    body("did").custom(value => {
+      if (value === "") {
+        throw new Error("Please Select a Doctor");
+      }
+      return true;
+    }),
+    body("date").custom((value, { req }) => {
+      if (value === "") {
+        throw new Error("Please Select a Date");
+      }
+      return con
+        .execute(
+          "SELECT * FROM appointed WHERE did = ? AND time = ? AND date = ?",
+          [req.body.did, req.body.time, value]
+        )
+        .then(([result]) => {
+          if (result.length > 0) {
+            return Promise.reject(
+              "Date and Time is Already Appointed, Please Select a Different Date or Time"
+            );
+          }
+        });
+    }),
+    body("time").custom(value => {
+      if (value === "") {
+        throw new Error("Please Select a Time Slot");
+      }
+      return true;
+    })
+  ],
+  isAuth,
+  isPat,
+  isNotAdmitted,
+  (req, res) => {
+    errors = validationResult(req);
+    console.log(req.body);
+    console.log(errors);
+    if (!errors.isEmpty()) {
+      return con
+        .execute("SELECT * FROM doctor;")
+        .then(([doctors]) => {
+          return res.render("pappoint", {
+            doctors: doctors,
+            error: errors.array()[0].msg,
+            input: req.body,
+            validationErrors: errors.array()
+          });
+        })
+        .catch(err => console.log(err));
+    }
+    console.log(req.body);
+    con
+      .execute(
+        `INSERT INTO appointed(pid, did, time, date, fees) 
+    VALUES (?, ?, ?, ?, ?)`,
+        [
+          req.session.UserId,
+          req.body.did,
+          req.body.time,
+          req.body.date,
+          req.body.fees
+        ]
+      )
+      .then(() => {
+        return res.redirect("/");
+      });
+  }
+);
+
+/***************************************Availabe Doctors************************************************************/
 app.get("/doctor", (req, res) => {
   con.execute("SELECT * FROM doctor").then(([result]) => {
     return res.render("doctor", {
