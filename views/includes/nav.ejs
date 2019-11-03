@@ -46,11 +46,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/doctor/patients" style="color: #880202;">Patients</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/doctor/appoinments" style="color: #880202;">Appointment</a>
+                    <a class="nav-link" href="/doctor/appointments" style="color: #880202;">Appointment</a>
                 </li>
 
                 <% } %>
@@ -92,15 +88,15 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/patient/profile" style="color: #880202;">MyProfile</a>
                 </li>
-                <% } else if (UserType === 'doctor') { %>
-                <li class="nav-item">
+                <% } // else if (UserType === 'doctor') { %>
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="/doctor/profile" style="color: #880202;">MyProfile</a>
                 </li>
-                <% } else { %>
+                <%// } else { %>
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/profile" style="color: #880202;">MyProfile</a>
-                </li>
-                <% } %>
+                </li> -->
+                <% // } %>
                 <li class="nav-item">
                     <form action="/logout" method="POST" class="form-inline">
                         <button type="submit" class="btn btn-link nav-link" style="color: #880202;">Logout</button>

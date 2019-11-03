@@ -16,7 +16,7 @@
 <body>
     <h1>K HOSPITAL</h1>
     <%- include('includes/nav.ejs')%>
-    <h2>Welcome to the Registration</h2>
+    <h2>My Profile</h2>
     <div class="container border rounded" style="background: rgb(240, 248, 255); border-color: black;">
         <% if (error.length > 0) { %>
         <div class="alert alert-danger text-center mt-2" role="alert">
@@ -38,22 +38,6 @@
                     id="inputEmail4" name="email" placeholder="Email" value="<%= data.email %>" required>
             </div>
 
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="inputPassword4">Password</label>
-                    <input type="password"
-                        class="form-control <%= validationErrors.find(e => e.param === 'password') ? 'is-invalid' : '' %>"
-                        id="inputPassword4" name="password" placeholder="Password" value="<%= data.password %>"
-                        required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="inputPassword5">Confrim Password</label>
-                    <input type="password"
-                        class="form-control <%= validationErrors.find(e => e.param === 'conpassword') ? 'is-invalid' : '' %>"
-                        id="inputPassword5" name="conpassword" placeholder="Confrim Password"
-                        value="<%= data.conpassword %>" required>
-                </div>
-            </div>
             <div class="form-group">
                 <label for="inputAddress">Address</label>
                 <input type="text"
@@ -67,11 +51,11 @@
                     id="pno" name='pno' placeholder="Phone Number" value="<%= data.pno %>" required>
             </div>
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Sign up</button>
+                <button type="submit" class="btn btn-primary">Update</button>
             </div>
             <div class="text-center">
-                <small>
-                    Already have an account? <a href="/login/patient">Login</a>
+                <small class="text-center">
+                    You change Password <a href="/patient/changepass">Here</a>
                 </small>
             </div>
         </form>

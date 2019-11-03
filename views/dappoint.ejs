@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>K HOSPITAL</title>
+    <title>Appointment</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <h1>K HOSPITAL</h1>
+    <%- include('includes/nav.ejs')%>
+    <h2>My Appointment</h2>
+    <div class="container">
+        <% date = "" %>
+        <% if(input.date) { %>
+        <% date = (new Date(input.date)).getFullYear() + "-" + 
+            ("0" + ((new Date(input.date)).getMonth() + 1)).slice(-2) + "-" + 
+            ("0" + ((new Date(input.date)).getDate())).slice(-2) %>
+        <% } %>
+        <% if (error.length > 0) { %>
+        <div class="alert alert-danger text-center" role="alert">
+            <%= error %>
+        </div>
+        <% } %>
+        <form class="form-inline" method="POST">
+            <div class="input-group mx-sm-3 mb-2 mr-3">
+                <input type="search" class="form-control" placeholder="Enter Name or ID" name="searchText"
+                    value="<%= input.searchText %>">
+                <input type="date" class="form-control pr-0" placeholder="Enter Date" name="date" name="searchText"
+                    value="<%= date %>">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary mb-2">Search</button>
+                </div>
+            </div>
+        </form>
+        <table class="table table-hover table-sm table-bordered">
+            <thead>
+                <tr class="bg-primary">
+                    <th scope="col">Patient ID</th>
+                    <th scope="col">Patient Name</th>
+                    <th scope="col">Patient Phone No</th>
+                    <th scope="col">Patient Address</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Fees</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for (result of results) { %>
+                <tr class="table-primary">
+                    <td><%= result.pid %></td>
+                    <td><%= result.pname %></td>
+                    <td><%= result.pno %></td>
+                    <td><%= result.address %></td>
+                    <td><%= 
+                            new Date(result.date).getDate() %>/<%= 
+                            new Date(result.date).getMonth() %>/<%= 
+                            new Date(result.date).getFullYear() 
+                        %>
+                    </td>
+                    <td><%= result.time %>
+                        <%= ((result.time).includes('9') || 
+                            (result.time).includes('10') || 
+                            (result.time).includes('11')) ?
+                            "am" : "pm" %>
+                    </td>
+                    <td><%= result.fees %></td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</body>
+<%-include('includes/end.ejs') %>
+
+</html>

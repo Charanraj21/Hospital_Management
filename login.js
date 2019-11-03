@@ -523,6 +523,249 @@ app.post("/patient/relatives/delete", isAuth, isPat, (req, res) => {
 
 /***************************Relative Routes for Patient END***********************************************************/
 
+/***************************Myprofile Routes for Patient***********************************************************/
+
+// GET ROUTES
+app.get("/patient/changepass", (req, res) => {
+  return res.render("pchangepass", {
+    data: {},
+    error: "",
+    validationErrors: []
+  });
+});
+
+app.get("/patient/profile", (req, res) => {
+  con
+    .execute("SELECT * FROM `patient` WHERE id = ?", [req.session.UserId])
+    .then(([result]) => {
+      return res.render("pmypro", {
+        data: result[0],
+        error: "",
+        validationErrors: []
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+// POST ROUTES
+app.post(
+  "/patient/changepass",
+  [
+    body("oldpassword", "Password Must be Minimum of 6 Characters Long")
+      .trim()
+      .isLength({ min: 6 })
+      .custom((value, { req }) => {
+        return con
+          .execute("SELECT * FROM `patient` WHERE id = ?", [req.session.UserId])
+          .then(([result]) => {
+            if (value !== result[0].password) {
+              return Promise.reject("Password Is Incorrect");
+            }
+          });
+      }),
+    body("password", "Password Must be Minimum of 6 Characters Long")
+      .trim()
+      .isLength({ min: 6 }),
+    body("conpassword")
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error("Confrim Password Must Match New Password");
+        }
+        return true;
+      })
+  ],
+  (req, res) => {
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("pchangepass", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array()
+      });
+    }
+    console.log("Input is Valid");
+
+    con
+      .execute(`UPDATE patient SET password=? WHERE id = ? `, [
+        req.body.password,
+        req.session.UserId
+      ])
+      .then(() => {
+        return res.redirect("/");
+      })
+      .catch(err => console.log(error));
+  }
+);
+
+app.post(
+  "/patient/profile",
+  [
+    body("pname", "Name Should only contain letters")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Name Should be Minimum 3 Characters Long")
+      .custom(value => {
+        const letterNumber = /^[a-zA-Z .]+$/;
+        if (value.match(letterNumber)) {
+          return true;
+        }
+        return false;
+      }),
+    body("email", "Email is invalid")
+      .normalizeEmail()
+      .isEmail()
+      .custom((value, { req }) => {
+        return con
+          .execute("SELECT * FROM `patient` WHERE email = ?", [value])
+          .then(([result]) => {
+            console.log(result);
+            if (result.length > 0) {
+              if (result[0].id !== req.session.UserId) {
+                return Promise.reject("Email is Already in use");
+              }
+            }
+          });
+      }),
+    body("address", "Address Must be Minimum 5 Characters Long")
+      .trim()
+      .isLength({ min: 5 }),
+    body("pno", "Invalid Phone Number")
+      .trim()
+      .isDecimal()
+  ],
+  (req, res) => {
+    const error = validationResult(req);
+    console.log(error);
+    if (!error.isEmpty()) {
+      return res.status(422).render("pmypro", {
+        data: req.body,
+        error: error.array()[0].msg,
+        validationErrors: error.array()
+      });
+    }
+    console.log("Input is Valid");
+
+    con
+      .execute(
+        `UPDATE patient SET pname=?, address=?, pno=?, email=?  WHERE id = ? `,
+        [
+          req.body.pname,
+          req.body.address,
+          req.body.pno,
+          req.body.email,
+          req.session.UserId
+        ]
+      )
+      .then(() => {
+        return res.redirect("/");
+      })
+      .catch(err => console.log(error));
+  }
+);
+
+/***************************Myprofile Routes for Patient END***********************************************************/
+
+/***************************************DOCTOR APPOINMENT ROUTES************************************************/
+
+app.get("/doctor/appointments", isAuth, isDoc, (req, res) => {
+  con
+    .execute(
+      `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+      WHERE appointed.pid = patient.id AND appointed.did = ? 
+      ORDER BY appointed.date DESC`,
+      [req.session.UserId]
+    )
+    .then(([results]) => {
+      return res.render("dappoint", {
+        results: results,
+        input: {},
+        error: ""
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+app.post(
+  "/doctor/appointments",
+  [
+    body("searchText", "Seach should contain only characters and numbers")
+      .trim()
+      .optional({ checkFalsy: true })
+      .isAlphanumeric()
+  ],
+  isAuth,
+  isDoc,
+  (req, res) => {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return con
+        .execute(
+          `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+      WHERE appointed.pid = patient.id AND appointed.did = ? 
+      ORDER BY appointed.date DESC`,
+          [req.session.UserId]
+        )
+        .then(([results]) => {
+          return res.render("dappoint", {
+            results: results,
+            input: req.body,
+            error: errors.array()[0].msg
+          });
+        })
+        .catch(err => console.log(err));
+    } else if (req.body.date == "") {
+      return con
+        .execute(
+          `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+          WHERE appointed.pid = patient.id AND appointed.did = ? AND
+          (appointed.pid = ? OR patient.pname LIKE ? OR patient.address LIKE ?) 
+          ORDER BY appointed.date DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            "%" + req.body.searchText + "%"
+          ]
+        )
+        .then(([results]) => {
+          return res.render("dappoint", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    } else {
+      return con
+        .execute(
+          `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+          WHERE appointed.pid = patient.id AND appointed.did = ? AND
+          (appointed.pid = ? OR patient.pname LIKE ? OR patient.address LIKE ?) AND date = ?
+        ORDER BY appointed.date DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            "%" + req.body.searchText + "%",
+            req.body.date
+          ]
+        )
+        .then(([results]) => {
+          return res.render("dappoint", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    }
+  }
+);
+
+/***************************************DOCTOR APPOINMENT ROUTES END****************************************************/
+
 /***************************************Availabe Doctors************************************************************/
 app.get("/doctor", (req, res) => {
   con.execute("SELECT * FROM doctor").then(([result]) => {
@@ -579,7 +822,7 @@ app.post(
 app.get("/contact", (req, res) => {
   res.render("contact");
 });
-/******************Availabe Doctors*****************************/
+/******************Availabe Doctors END*****************************/
 
 /********************SIGNUP ROUTES******************************/
 
@@ -619,6 +862,14 @@ app.post(
     body("password", "Password Must be Minimum of 6 Characters Long")
       .trim()
       .isLength({ min: 6 }),
+    body("conpassword")
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error("Confrim Password Must Match Password");
+        }
+        return true;
+      }),
     body("address", "Address Must be Minimum 5 Characters Long")
       .trim()
       .isLength({ min: 5 }),
