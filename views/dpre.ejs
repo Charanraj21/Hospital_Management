@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>K HOSPITAL</title>
+    <title>Registration</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/index.css">
+    <link href="/css/select2.css" rel="stylesheet" />
+</head>
+
+<body>
+    <h1>K HOSPITAL</h1>
+    <%- include('includes/nav.ejs')%>
+    <h2>Create Prescription</h2>
+    <div class="container border rounded col-md-6" style="background: rgb(240, 248, 255); border-color: black;">
+        <% date = (new Date()).getFullYear() + "-" + 
+                  ("0" + ((new Date()).getMonth() + 1)).slice(-2) + "-" + 
+                  ("0" + ((new Date()).getDate())).slice(-2) %>
+        <% if(input.date) { %>
+        <% date = (new Date(input.date)).getFullYear() + "-" + 
+                  ("0" + ((new Date(input.date)).getMonth() + 1)).slice(-2) + "-" + 
+                  ("0" + ((new Date(input.date)).getDate())).slice(-2) %>
+        <% } %>
+
+        <%  if (error.length > 0) { %>
+        <div class="alert alert-danger text-center mt-2" role="alert">
+            <%=  error %>
+        </div>
+        <%  } %>
+        <form class="p-3" method="POST">
+            <div class="form-group">
+                <label for="patient">Select a Patient:</label>
+                <select class="js-example-basic-single form-control" name="pid" id="patient">
+                    <option value="">Select a Patient</option>
+                    <% for (patient of results) { %>
+                    <option value="<%= patient.pid %>" <%= (input.pid == patient.pid)? 'selected' : '' %>>
+                        <%= patient.pid + " - " + patient.pname %>
+                    </option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" class="form-control form-control-sm" name="date" id="date" min="<%- date %>"
+                    value="<%- date %>" style="border: solid #aaa 1px;" readonly>
+
+            </div>
+
+            <div class="form-group">
+                <label for="">Select Tablets</label>
+                <select class="js-example-basic-multiple form-control" name="tid[]" multiple="multiple">
+                    <% for (tablet of tablets) { %>
+                    <option value="<%= tablet.tid %>" <%= (input.tid.find(id => id == tablet.tid))? 'selected' : '' %>>
+                        <%= tablet.tid + " - " + tablet.tname + " - " + String(tablet.no) %>
+                    </option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fees">Fees:</label>
+                <input type="text" class="form-control form-control-sm" name="fees" id="fees" value="500" readonly>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Create Prescription</button>
+            </div>
+        </form>
+    </div>
+
+
+
+</body>
+
+<%-include('includes/end.ejs') %>
+<script>
+    $(document).ready(function () {
+        $('.js-example-basic-single').select2();
+    });
+    $(document).ready(function () {
+        $('.js-example-basic-multiple').select2();
+    });
+</script>
+<script src="/script/select2.full.js"></script>
+
+</html>

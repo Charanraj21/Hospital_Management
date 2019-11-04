@@ -703,8 +703,8 @@ app.post(
       return con
         .execute(
           `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
-      WHERE appointed.pid = patient.id AND appointed.did = ? 
-      ORDER BY appointed.date DESC`,
+          WHERE appointed.pid = patient.id AND appointed.did = ? 
+          ORDER BY appointed.date DESC`,
           [req.session.UserId]
         )
         .then(([results]) => {
@@ -765,6 +765,84 @@ app.post(
 );
 
 /***************************************DOCTOR APPOINMENT ROUTES END****************************************************/
+
+/***************************************DOCTOR PRESCRIPTION ROUTES*********************************************************/
+
+app.get("/doctor/prescriptions", isAuth, isDoc, (req, res) => {
+  con
+    .execute(
+      `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+      WHERE appointed.pid = patient.id AND appointed.did = ? GROUP BY appointed.pid
+      ORDER BY appointed.date DESC`,
+      [req.session.UserId]
+    )
+    .then(([results]) => {
+      return con.execute("SELECT * FROM `tablet`").then(([tab]) => {
+        return res.render("dpre", {
+          results: results,
+          tablets: tab,
+          input: {
+            tid: []
+          },
+          error: ""
+        });
+      });
+    });
+});
+
+app.post(
+  "/doctor/prescriptions",
+  [
+    body("pid")
+      .trim()
+      .custom(value => {
+        if (value === "") {
+          throw new Error("Please Select a Patient");
+        }
+        return true;
+      }),
+    body("tid").custom((value, { req }) => {
+      console.log(value);
+      if (!value) {
+        throw new Error("Please Choose at Least One Tablet");
+      }
+      return true;
+    })
+  ],
+  isAuth,
+  isDoc,
+  (req, res) => {
+    const errors = validationResult(req);
+    console.log(errors);
+    console.log(req.body.tid);
+    if (!Array.isArray(req.body.tid)) {
+      req.body.tid = [].concat(req.body.tid);
+    }
+    if (!errors.isEmpty) {
+      con
+        .execute(
+          `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
+        WHERE appointed.pid = patient.id AND appointed.did = ? GROUP BY appointed.pid
+        ORDER BY appointed.date DESC`,
+          [req.session.UserId]
+        )
+        .then(([results]) => {
+          console.log(req.body);
+          return con.execute("SELECT * FROM `tablet`").then(([tab]) => {
+            return res.render("dpre", {
+              results: results,
+              tablets: tab,
+              input: req.body,
+              error: errors.array()[0].msg
+            });
+          });
+        });
+    }
+    // Insert Logic Here
+  }
+);
+
+/***************************************DOCTOR PRESCRIPTION ROUTES END****************************************************/
 
 /***************************************Availabe Doctors************************************************************/
 app.get("/doctor", (req, res) => {
