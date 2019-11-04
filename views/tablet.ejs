@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>K HOSPITAL</title>
+    <title>Appointment</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+    <h1>K HOSPITAL</h1>
+    <%- include('includes/nav.ejs')%>
+    <h2>My Appointment</h2>
+    <div class="container">
+        <table class="table table-hover table-sm table-bordered">
+            <thead>
+                <tr class="bg-primary">
+                    <th scope="col">Tablet ID</th>
+                    <th scope="col">Tablet Name</th>
+                    <th scope="col">Dose</th>
+                    <th scope="col">Number of Tablets</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for (result of results) { %>
+                <tr class="table-primary">
+                    <td><%= result.tid %></td>
+                    <td><%= result.tname %></td>
+                    <td><%= result.dose %></td>
+                    <td><%= result.no %></td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</body>
+<%-include('includes/end.ejs') %>
+
+</html>

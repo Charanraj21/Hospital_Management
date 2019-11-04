@@ -523,6 +523,114 @@ app.post("/patient/relatives/delete", isAuth, isPat, (req, res) => {
 
 /***************************Relative Routes for Patient END***********************************************************/
 
+app.get("/patient/prescription/view/:id", isAuth, isPat, (req, res) => {
+  con
+    .execute(
+      `SELECT * FROM tablet,includes WHERE tablet.tid = includes.tid AND includes.preid = ?`,
+      [req.params.id]
+    )
+    .then(([result]) => {
+      return res.render("tablet", {
+        results: result,
+        error: "",
+        input: ""
+      });
+    });
+});
+
+app.get("/patient/prescriptions", isAuth, isPat, (req, res) => {
+  con
+    .execute(
+      `SELECT *, doctor.dname FROM prescription,doctor 
+      WHERE doctor.did = prescription.did AND prescription.pid = ?
+      ORDER BY idate DESC`,
+      [req.session.UserId]
+    )
+    .then(([result]) => {
+      return res.render("pallpre", {
+        results: result,
+        error: "",
+        input: ""
+      });
+    });
+});
+
+app.post(
+  "/patient/prescriptions",
+  [
+    body("searchText", "Seach should contain only characters and numbers")
+      .trim()
+      .optional({ checkFalsy: true })
+      .isAlphanumeric()
+  ],
+  isAuth,
+  isPat,
+  (req, res) => {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return con
+        .execute(
+          `SELECT *, doctor.dname FROM prescription,doctor 
+          WHERE doctor.did = prescription.did AND prescription.pid = ?
+          ORDER BY idate DESC`,
+          [req.session.UserId]
+        )
+        .then(([results]) => {
+          return res.render("pallpre", {
+            results: results,
+            input: req.body,
+            error: errors.array()[0].msg
+          });
+        })
+        .catch(err => console.log(err));
+    } else if (req.body.date == "") {
+      return con
+        .execute(
+          `SELECT *, doctor.dname FROM prescription,doctor 
+          WHERE doctor.did = prescription.did AND prescription.pid = ? AND
+          (prescription.did = ? OR doctor.dname LIKE ?) 
+          ORDER BY idate DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%"
+          ]
+        )
+        .then(([results]) => {
+          return res.render("pallpre", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    } else {
+      return con
+        .execute(
+          `SELECT *, doctor.dname FROM prescription,doctor 
+          WHERE doctor.did = prescription.did AND prescription.pid = ? AND
+          (prescription.did = ? OR doctor.dname LIKE ?) AND idate = ?
+          ORDER BY idate DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            req.body.date
+          ]
+        )
+        .then(([results]) => {
+          return res.render("pallpre", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    }
+  }
+);
+
+
 /***************************Myprofile Routes for Patient***********************************************************/
 
 // GET ROUTES
@@ -818,8 +926,8 @@ app.post(
     if (!Array.isArray(req.body.tid)) {
       req.body.tid = [].concat(req.body.tid);
     }
-    if (!errors.isEmpty) {
-      con
+    if (!errors.isEmpty()) {
+      return con
         .execute(
           `SELECT appointed.*, patient.pname, patient.pno, patient.address FROM appointed, patient 
         WHERE appointed.pid = patient.id AND appointed.did = ? GROUP BY appointed.pid
@@ -838,9 +946,144 @@ app.post(
           });
         });
     }
-    // Insert Logic Here
+    con
+      .execute(
+        `INSERT INTO prescription( did, pid, idate, fees) VALUES (?, ?, ?, ?)`,
+        [req.session.UserId, req.body.pid, req.body.date, req.body.fees]
+      )
+      .then(() => {
+        return con
+          .execute("SELECT MAX(preid) as 'preid' FROM prescription ")
+          .then(([result]) => {
+            const preid = result[0].preid;
+            for (var i = 0; i < req.body.tid.length; i++) {
+              con
+                .execute(
+                  "INSERT INTO `includes`(`preid`, `tid`) VALUES (?, ?)",
+                  [preid, req.body.tid[i]]
+                )
+                .catch(err => console.log(err));
+            }
+            return con
+              .execute(
+                "INSERT INTO `treatsa`(`did`, `pid`, `tdate`) VALUES (?, ?, ?)",
+                [req.session.UserId, req.body.pid, req.body.date]
+              )
+              .then(() => {
+                return res.redirect("/");
+              });
+          });
+      });
   }
 );
+
+app.get("/doctor/allprescriptions", isAuth, isDoc, (req, res) => {
+  con
+    .execute(
+      `SELECT *, patient.pname FROM prescription,patient 
+      WHERE patient.id = prescription.pid AND prescription.did = ?
+      ORDER BY idate DESC`,
+      [req.session.UserId]
+    )
+    .then(([result]) => {
+      return res.render("dallpre", {
+        results: result,
+        error: "",
+        input: ""
+      });
+    });
+});
+
+app.post(
+  "/doctor/allprescriptions",
+  [
+    body("searchText", "Seach should contain only characters and numbers")
+      .trim()
+      .optional({ checkFalsy: true })
+      .isAlphanumeric()
+  ],
+  isAuth,
+  isDoc,
+  (req, res) => {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return con
+        .execute(
+          `SELECT *, patient.pname FROM prescription,patient 
+          WHERE patient.id = prescription.pid AND prescription.did = ?
+          ORDER BY idate DESC`,
+          [req.session.UserId]
+        )
+        .then(([results]) => {
+          return res.render("dallpre", {
+            results: results,
+            input: req.body,
+            error: errors.array()[0].msg
+          });
+        })
+        .catch(err => console.log(err));
+    } else if (req.body.date == "") {
+      return con
+        .execute(
+          `SELECT *, patient.pname FROM prescription,patient 
+          WHERE patient.id = prescription.pid AND prescription.did = ? AND
+          (prescription.pid = ? OR patient.pname LIKE ?) 
+          ORDER BY idate DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%"
+          ]
+        )
+        .then(([results]) => {
+          return res.render("dallpre", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    } else {
+      return con
+        .execute(
+          `SELECT *, patient.pname FROM prescription,patient 
+          WHERE patient.id = prescription.pid AND prescription.did = ? AND
+          (prescription.pid = ? OR patient.pname LIKE ?) AND idate = ?
+          ORDER BY idate DESC`,
+          [
+            Number(req.session.UserId),
+            Number(req.body.searchText),
+            "%" + req.body.searchText + "%",
+            req.body.date
+          ]
+        )
+        .then(([results]) => {
+          return res.render("dallpre", {
+            results: results,
+            input: req.body,
+            error: ""
+          });
+        })
+        .catch(err => console.log(err));
+    }
+  }
+);
+
+app.get("/doctor/prescription/view/:id", isAuth, isDoc, (req, res) => {
+  con
+    .execute(
+      `SELECT * FROM tablet,includes WHERE tablet.tid = includes.tid AND includes.preid = ?`,
+      [req.params.id]
+    )
+    .then(([result]) => {
+      return res.render("tablet", {
+        results: result,
+        error: "",
+        input: ""
+      });
+    });
+});
+
 
 /***************************************DOCTOR PRESCRIPTION ROUTES END****************************************************/
 
